@@ -1,27 +1,13 @@
-const express = require('express');
-// Import and require mysql2
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
+require('dotenv').config();
 
-const PORT = process.env.PORT || 3001;
-const app = express();
-
-// Express middleware
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
-
-// Connect to database
-const db = mysql.createConnection(
-    {
-        host: 'localhost',
-        // MySQL username,
-        user: 'root',
-        // Add MySQL password here
-        password: 'Secret.flower1276!',
-        database: 'employee_db'
-    },
-    console.log(`Connected to the employee_db database.`)
-);
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: process.env.DB_PASSWORD,
+    database: 'employee_db'
+}, console.log(`Connected to the employee_db database.`));
 
 db.connect(function(err) {
     if (err) throw err;
@@ -43,6 +29,9 @@ function start() {
                 'Add a role',
                 'Add an employee',
                 'Update an employee role',
+                'Delete a department',
+                'Delete a role',
+                'Delete an employee',
                 'Exit'
             ]
         })
@@ -80,6 +69,69 @@ function start() {
                     db.end();
                     break;
             }
+        });
+}
+
+function addRole() {
+    inquirer
+        .prompt([
+            {
+                name: 'title',
+                type: 'input',
+                message: 'Role title:'
+            },
+            {
+                name: 'salary',
+                type: 'input',
+                message: 'Salary for the role:'
+            },
+            {
+                name: 'department_id',
+                type: 'input',
+                message: 'Department ID for the role:'
+            }
+        ])
+        .then((answer) => {
+            db.promise().query('INSERT INTO role SET ?', answer)
+                .then(() => {
+                    console.log(`Added ${answer.title} to roles`);
+                    start();
+                })
+                .catch((err) => console.error(err));
+        });
+}
+
+function addEmployee() {
+    inquirer
+        .prompt([
+            {
+                name: 'first_name',
+                type: 'input',
+                message: 'Employee\'s first name:'
+            },
+            {
+                name: 'last_name',
+                type: 'input',
+                message: 'Employee\'s last name:'
+            },
+            {
+                name: 'role_id',
+                type: 'input',
+                message: 'Role ID for the employee:'
+            },
+            {
+                name: 'manager_id',
+                type: 'input',
+                message: 'Manager ID for the employee:'
+            }
+        ])
+        .then((answer) => {
+            db.promise().query('INSERT INTO employee SET ?', answer)
+                .then(() => {
+                    console.log(`Added ${answer.first_name} ${answer.last_name} to employees`);
+                    start();
+                })
+                .catch((err) => console.error(err));
         });
 }
 
@@ -122,4 +174,63 @@ function viewAllEmployees() {
             start();
         })
         .catch((err) => console.error(err));
+}
+
+// functtion to add department, role and employee
+function addDepartment() {
+    inquirer
+        .prompt([
+            {
+                name: 'name',
+                type: 'input',
+                message: 'What is the name of the new department?'
+            }
+        ])
+        .then((answer) => {
+            db.promise().query('INSERT INTO department SET ?', { name: answer.name })
+                .then(() => {
+                    console.log(`Added ${answer.name} to departments`);
+                    start();
+                })
+                .catch((err) => console.error(err));
+        });
+}
+
+// Updating employee 
+function updateEmployeeRole() {
+    // First get all employees
+    db.promise().query('SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee')
+        .then(([employees]) => {
+            inquirer.prompt([
+                {
+                    name: 'employeeId',
+                    type: 'list',
+                    message: 'Which employee do you want to update?',
+                    choices: employees.map(employee => ({ name: employee.name, value: employee.id }))
+                }
+            ])
+            .then((answers) => {
+                // Get all roles
+                db.promise().query('SELECT id, title FROM role')
+                    .then(([roles]) => {
+                        inquirer.prompt([
+                            {
+                                name: 'roleId',
+                                type: 'list',
+                                message: 'What is the new role for this employee?',
+                                choices: roles.map(role => ({ name: role.title, value: role.id }))
+                            }
+                        ])
+                        .then(roleAnswer => {
+                            db.promise().query('UPDATE employee SET role_id = ? WHERE id = ?', [roleAnswer.roleId, answers.employeeId])
+                                .then(() => {
+                                    console.log('Updated employee role');
+                                    start();
+                                })
+                                .catch(err => console.error(err));
+                        });
+                    });
+            });
+        })
+        .catch(err => console.error(err));
 }
