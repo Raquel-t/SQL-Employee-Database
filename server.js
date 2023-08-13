@@ -29,9 +29,6 @@ function start() {
                 'Add a role',
                 'Add an employee',
                 'Update an employee role',
-                'Delete a department',
-                'Delete a role',
-                'Delete an employee',
                 'Exit'
             ]
         })
