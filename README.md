@@ -51,7 +51,7 @@ The following necessary dependencies must be installed: npm [inquirer 8.2.4](htt
 
   Open terminal and run node index.js. You'll be prompted with a list to view, add, update and delete roles, employees /or department. 
 
-  [Demo](https://drive.google.com/file/d/1p3KzXtx4nV4H7qg06kx-5iHouJnwqMfR/view)
+ <iframe src="https://drive.google.com/file/d/1p3KzXtx4nV4H7qg06kx-5iHouJnwqMfR/preview" width="640" height="480"></iframe> 
 
 ## Badges
 * ![License](https://img.shields.io/badge/License-MIT-blue.svg)
